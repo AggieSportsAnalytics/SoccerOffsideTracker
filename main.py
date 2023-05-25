@@ -3,7 +3,7 @@ from operator import itemgetter
 import numpy as np
 from yolo_segmentation import YOLOSegmentation
 
-cap = cv2.VideoCapture("vid.mov")
+cap = cv2.VideoCapture("vid1.mov")
 
 ys = YOLOSegmentation("yolov8m-seg.pt")
 
