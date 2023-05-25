@@ -7,11 +7,13 @@ cap = cv2.VideoCapture("vid.mov")
 
 ys = YOLOSegmentation("yolov8m-seg.pt")
 
+# Average color function (pass in box) (returns BGR)
 def get_average_color(a):
     avg_color_per_row = np.average(a, axis=0)
     avg_color = np.average(avg_color_per_row, axis=0)
     return avg_color
 
+# Perspective transform function (pass in a point) (returns a point)
 def perspective_transform(p):
     tl = [915,254]
     bl = [160,520]
@@ -36,44 +38,64 @@ def perspective_transform(p):
     new_p = (x,y)
     return new_p
 
+# Loop through each frame
 while True:
+    # Video frame = frame
     ret, frame = cap.read()
+
+    # 2D image = dst
     dst = cv2.imread("dst.jpg")
+
     if not ret:
         break
 
+    # Copy of frame
     frame2 = np.array(frame)
 
+    # Detect objects
     bboxes, classes, segmentations, scores = ys.detect(frame)
 
+    # Loop through each object
     for bbox, class_id, seg, score in zip(bboxes, classes, segmentations, scores):
+        # If object is a player
         if class_id == 0:
+            # Set corner coordinates for bounding box around player
             (x, y, x2, y2) = bbox
             
+            # Draw segmentation around player
             minX = min(seg, key=itemgetter(0))[0]
             maxY = max(seg, key=itemgetter(1))[1]
 
+            # Create smaller rectangle around player to use for color detection
             bottomVal = int(2*(maxY - seg[0][1])/3 + seg[0][1])
-
             roi = frame2[seg[0][1]:bottomVal, seg[0][0]:seg[len(seg)-1][0]]
 
+            # Get average color of smaller rectangle
             dominant_color = get_average_color(roi)
 
+            # Get point to draw on 2D image based on the minimum X value (farthest right) and maximum Y value (lowest point)
             point = perspective_transform([minX, maxY])
 
+            # Create random color
             for i in range(3):
                 r = np.random.randint(0,255)
                 b = np.random.randint(0,255)
                 g = np.random.randint(0,255)
 
-            cv2.polylines(frame, [seg], True, (b,g,r), 2)
-            cv2.circle(frame,(minX, maxY),5,(b,g,r),-1)
-            
-            cv2.circle(dst,point,5,(b,g,r),-1)
+            # Draw segmentation with the color of the dominant color of the player
+            cv2.polylines(frame, [seg], True, dominant_color, 3)
+            # Draw point at the bottom right of the player
+            cv2.circle(frame,(minX, maxY),5,dominant_color,-1)
+            # Draw corresponding point on 2D image            
+            cv2.circle(dst,point,5,dominant_color,-1)
 
+    # Show images
     cv2.imshow("Img", frame)
     cv2.imshow("top", dst)
+
+    # Space to move forward a frame
     key = cv2.waitKey(0)
+    # Esc to exit
     if key == 27:
         break
 
