@@ -9,8 +9,9 @@ ys = YOLOSegmentation("yolov8m-seg.pt")
 
 # Average color function (pass in box) (returns BGR)
 def get_average_color(a):
-    avg_color_per_row = np.average(a, axis=0)
-    avg_color = np.average(avg_color_per_row, axis=0)
+    # avg_color_per_row = np.average(a, axis=0)
+    # avg_color = np.average(avg_color_per_row, axis=0)
+    avg_color = np.mean(a, axis=(0,1))
     return avg_color
 
 # Perspective transform function (pass in a point) (returns a point)
@@ -64,17 +65,37 @@ while True:
             
             # Draw segmentation around player
             minX = min(seg, key=itemgetter(0))[0]
+            maxX = max(seg, key=itemgetter(0))[0]
             maxY = max(seg, key=itemgetter(1))[1]
 
             # Create smaller rectangle around player to use for color detection
-            bottomVal = int(2*(maxY - seg[0][1])/3 + seg[0][1])
-            roi = frame2[seg[0][1]:bottomVal, seg[0][0]:seg[len(seg)-1][0]]
+            distLeft = int(abs(seg[0][0] - minX))
+            distRight = int(abs(seg[0][0] - maxX))
+
+            newX = int((x2 - x)/3 + x)
+            newY = int((y2 - y)/5 + y)
+            newX2 = int(2*(x2 - x)/3 + x)
+            newY2 = int(2*(y2 - y)/5 + y)
+
+            # Shift based on player orientation
+            if(distRight > distLeft):
+                # Shift left
+                newX = int(newX - ((distLeft + 30)/distRight)/5)
+                newX2 = int(newX2 - ((distLeft + 30)/distRight)/5)
+            else:
+                # Shift right
+                newX = int(newX + ((distLeft + 30)/distRight)/5)
+                newX2 = int(newX2 + ((distLeft + 30)/distRight)/5)
+
+            roi = frame2[newY:newY2, newX:newX2]
 
             # Get average color of smaller rectangle
             dominant_color = get_average_color(roi)
 
             # Get point to draw on 2D image based on the minimum X value (farthest right) and maximum Y value (lowest point)
             point = perspective_transform([minX, maxY])
+
+            frame[y, x]
 
             # Create random color
             for i in range(3):
@@ -84,6 +105,8 @@ while True:
 
             # Draw segmentation with the color of the dominant color of the player
             cv2.polylines(frame, [seg], True, dominant_color, 3)
+            # Draw smaller box used for color detection
+            cv2.rectangle(frame, (newX, newY), (newX2, newY2), dominant_color, 3)
             # Draw point at the bottom right of the player
             cv2.circle(frame,(minX, maxY),5,dominant_color,-1)
             # Draw corresponding point on 2D image            
