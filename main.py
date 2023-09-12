@@ -102,12 +102,12 @@ while True:
                 # Shift color detection box based on player orientation
                 if(distRight > distLeft):
                     # Shift left
-                    newX = int(newX - ((distLeft + 30)/distRight)/5)
-                    newX2 = int(newX2 - ((distLeft + 30)/distRight)/5)
+                    newX = int(newX - ((distRight)/distLeft)/1.5)
+                    newX2 = int(newX2 - ((distRight)/distLeft)/1.5)
                 else:
                     # Shift right
-                    newX = int(newX + ((distLeft + 30)/distRight)/5)
-                    newX2 = int(newX2 + ((distLeft + 30)/distRight)/5)
+                    newX = int(newX + ((distLeft)/distRight)*1.5)
+                    newX2 = int(newX2 + ((distLeft)/distRight)*1.5)
 
                 # Define smaller rectangle around player to use for color detection
                 roi = frame2[newY:newY2, newX:newX2]
