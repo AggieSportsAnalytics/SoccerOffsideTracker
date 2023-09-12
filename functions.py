@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.cluster import KMeans
-
 
 # Average color function (pass in box) (returns BGR)
 def get_average_color(a):
