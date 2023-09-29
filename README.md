@@ -1,3 +1,5 @@
+### For a more detailed description, visit [aggiesportsanalytics.com](https://aggiesportsanalytics.com/projects/soccer-offside-tracker).
+
 # Soccer Offside Tracker ⚽️
 
 ### 🏁 Determine offsides from any angle using the help of computer vision.
